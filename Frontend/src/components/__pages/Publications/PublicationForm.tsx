@@ -8,7 +8,6 @@ import { getPublicationTypes } from '@/modules/publications/api/getPublicationTy
 import { UpsertPublicationDto } from '@/modules/publications/types';
 import { Author, Publication } from '@/modules/types';
 import { Button, Chip, Input, Select, SelectItem, Spinner, Textarea } from '@heroui/react';
-import { PublicationStatus } from 'constants/statuses';
 
 import { useEffect, useState } from 'react';
 
@@ -43,11 +42,13 @@ export const PublicationForm = (props: PublicationFormProps) => {
   }));
 
   const [publicationTypes, setPublicationTypes] = useState<{ id: string; name: string }[]>([]);
-  const [publicationStatuses, setPublicationStatuses] = useState<Array<{
-    id: string;
-    name: string;
-    numericId: number;
-  }>>([]);
+  const [publicationStatuses, setPublicationStatuses] = useState<
+    Array<{
+      id: string;
+      name: string;
+      numericId: number;
+    }>
+  >([]);
   const [typographies, setTypographies] = useState<{ id: string; name: string }[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -79,11 +80,12 @@ export const PublicationForm = (props: PublicationFormProps) => {
           name: String(name),
         }));
 
-        // Map statuses from the API response
-        const mappedStatuses = (statusesResponse as unknown as Array<{ id: number; name: string }>).map(({ id, name }) => ({
-          id: String(id), // String ID for the select component
+        const mappedStatuses = (
+          statusesResponse as unknown as Array<{ id: number; name: string }>
+        ).map(({ id, name }) => ({
+          id: String(id),
           name: String(name),
-          numericId: id // Numeric ID for API requests
+          numericId: id,
         }));
 
         const mappedPrintingHouses = printingHousesResponse.map(ph => ({
@@ -297,9 +299,7 @@ export const PublicationForm = (props: PublicationFormProps) => {
               onChange={handleChange}
               className="w-full">
               {publicationStatuses.map(status => (
-                <SelectItem key={status.id}>
-                  {status.name}
-                </SelectItem>
+                <SelectItem key={status.id}>{status.name}</SelectItem>
               ))}
             </Select>
           </div>
