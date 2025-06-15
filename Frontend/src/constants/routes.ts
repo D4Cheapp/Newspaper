@@ -5,7 +5,7 @@ export enum Routes {
   subscriptions = '/subscriptions',
   requests = '/requests',
   clients = '/clients',
-  delivery = '/delivery',
+  deliveries = '/deliveries',
   publications = '/publications',
   createPublication = '/publications/create',
 }
@@ -24,8 +24,8 @@ export const managerRoutes = [
     href: Routes.clients,
   },
   {
-    label: 'Доставка',
-    href: Routes.delivery,
+    label: 'Доставки',
+    href: Routes.deliveries,
   },
 ];
 
@@ -41,5 +41,9 @@ export const chiefEditorRoutes = [
   {
     label: 'Типографии',
     href: Routes.printingHouses,
+  },
+  {
+    label: 'Доставки',
+    href: Routes.deliveries,
   },
 ];
