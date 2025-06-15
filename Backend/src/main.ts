@@ -9,7 +9,8 @@ const start = async () => {
   app.setGlobalPrefix('api');
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Newspaper API')
+    .setTitle('API Городской газеты')
+    .setDescription('API для управления городской газетой')
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
