@@ -239,9 +239,8 @@ export class PublicationsService {
         const delivery = this.deliveryRepository.create({
           client: subscription.client,
           publication: publication,
-          status: pendingStatus,
-          address: subscription.client.address,
-          deliveryDate: new Date().toISOString().split('T')[0],
+          deliveryStatus: pendingStatus,
+          quantity: 1,
         });
 
         return this.deliveryRepository.save(delivery);

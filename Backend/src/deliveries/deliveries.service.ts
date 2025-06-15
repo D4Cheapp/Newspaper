@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
-import { Delivery } from './delivery.entity';
-import { CreateDeliveryDto } from './dto/create-delivery.dto';
-import { UpdateDeliveryDto } from './dto/update-delivery.dto';
+
 import { Client } from '../clients/client.entity';
 import { Publication } from '../publications/publication.entity';
 import { DeliveryStatus } from './delivery-status.entity';
+import { Delivery } from './delivery.entity';
+import { CreateDeliveryDto } from './dto/create-delivery.dto';
+import { UpdateDeliveryDto } from './dto/update-delivery.dto';
 
 @Injectable()
 export class DeliveriesService {
@@ -18,7 +20,7 @@ export class DeliveriesService {
     @InjectRepository(Publication)
     private readonly publicationRepository: Repository<Publication>,
     @InjectRepository(DeliveryStatus)
-    private readonly deliveryStatusRepository: Repository<DeliveryStatus>,
+    private readonly deliveryStatusRepository: Repository<DeliveryStatus>
   ) {}
 
   async create(createDto: CreateDeliveryDto): Promise<Delivery> {
@@ -45,7 +47,7 @@ export class DeliveriesService {
         ...deliveryData,
         client: { id: clientId },
         publication: { id: publicationId },
-        status: { id: statusId },
+        deliveryStatus: { id: statusId },
       });
 
       const savedDelivery = await this.deliveryRepository.save(delivery);
@@ -57,28 +59,26 @@ export class DeliveriesService {
 
   async findAll(): Promise<Delivery[]> {
     try {
-      const deliveries = await this.deliveryRepository.find();
-      return Promise.all(deliveries.map(delivery => this.enrichDeliveryWithRelations(delivery)));
+      return await this.deliveryRepository.find({
+        relations: ['client', 'publication', 'deliveryStatus'],
+      });
     } catch (error) {
+      console.error('Error in findAll:', error);
       throw new InternalServerErrorException('Не удалось загрузить список доставок');
     }
   }
 
   async findOne(id: number): Promise<Delivery> {
-    const delivery = await this.deliveryRepository.findOne({ where: { id } });
+    const delivery = await this.deliveryRepository.findOne({
+      where: { id },
+      relations: ['client', 'publication', 'deliveryStatus'],
+    });
 
     if (!delivery) {
       throw new NotFoundException(`Доставка с ID ${id} не найдена`);
     }
 
-    return this.enrichDeliveryWithRelations(delivery);
-  }
-
-  private async enrichDeliveryWithRelations(delivery: Delivery): Promise<Delivery> {
-    return this.deliveryRepository.findOne({
-      where: { id: delivery.id },
-      relations: ['client', 'publication', 'status']
-    }) as Promise<Delivery>;
+    return delivery;
   }
 
   async update(id: number, updateDto: UpdateDeliveryDto): Promise<Delivery> {
@@ -97,7 +97,9 @@ export class DeliveriesService {
     }
 
     if (updateDto.publicationId) {
-      const publication = await this.publicationRepository.findOne({ where: { id: updateDto.publicationId } });
+      const publication = await this.publicationRepository.findOne({
+        where: { id: updateDto.publicationId },
+      });
       if (!publication) {
         throw new NotFoundException(`Публикация с ID ${updateDto.publicationId} не найдена`);
       }
@@ -105,11 +107,13 @@ export class DeliveriesService {
     }
 
     if (updateDto.statusId) {
-      const status = await this.deliveryStatusRepository.findOne({ where: { id: updateDto.statusId } });
+      const status = await this.deliveryStatusRepository.findOne({
+        where: { id: updateDto.statusId },
+      });
       if (!status) {
         throw new NotFoundException(`Статус доставки с ID ${updateDto.statusId} не найден`);
       }
-      delivery.status = { id: updateDto.statusId } as DeliveryStatus;
+      delivery.deliveryStatus = { id: updateDto.statusId } as DeliveryStatus;
     }
 
     try {

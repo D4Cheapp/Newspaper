@@ -18,14 +18,11 @@ export class Delivery {
   publication: Publication;
 
   @ManyToOne(() => DeliveryStatus, (item) => item.id, { eager: false, nullable: false })
-  @JoinColumn({ name: 'status_id' })
-  status: DeliveryStatus;
+  @JoinColumn({ name: 'delivery_status_id' })
+  deliveryStatus: DeliveryStatus;
 
-  @Column({ name: 'address', type: 'text' })
-  address: string;
-
-  @Column({ name: 'delivery_date', type: 'date' })
-  deliveryDate: string;
+  @Column({ name: 'quantity', type: 'int', default: 1 })
+  quantity: number;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
