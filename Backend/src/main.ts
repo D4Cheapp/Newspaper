@@ -9,7 +9,7 @@ const start = async () => {
   app.setGlobalPrefix('api');
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('MedKids API')
+    .setTitle('Newspaper API')
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
