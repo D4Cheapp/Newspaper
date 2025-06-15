@@ -1,5 +1,5 @@
 import { Client } from 'src/clients/client.entity';
-import { Publication } from 'src/publications/publication.entity';
+import { PublicationType } from 'src/publications/publication-type.entity';
 import {
   Column,
   CreateDateColumn,
@@ -19,9 +19,12 @@ export class Subscription {
   @JoinColumn({ name: 'client_id' })
   client: Client;
 
-  @ManyToOne(() => Publication, (publication) => publication.id, { eager: false, nullable: false })
-  @JoinColumn({ name: 'publication_id' })
-  publication: Publication;
+  @ManyToOne(() => PublicationType, (publicationType) => publicationType.id, {
+    eager: false,
+    nullable: false,
+  })
+  @JoinColumn({ name: 'publication_type_id' })
+  publicationType: PublicationType;
 
   @Column({ name: 'end_date', type: 'date' })
   endDate: string;

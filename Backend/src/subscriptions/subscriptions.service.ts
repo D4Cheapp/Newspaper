@@ -5,11 +5,11 @@ import { Subscription } from './subscription.entity';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import { Client } from '../clients/client.entity';
-import { Publication } from '../publications/publication.entity';
+import { PublicationType } from '../publications/publication-type.entity';
 
 type SubscriptionWithRelations = Subscription & {
   client: Client;
-  publication: Publication;
+  publicationType: PublicationType;
 };
 
 @Injectable()
@@ -19,78 +19,79 @@ export class SubscriptionsService {
     private readonly subscriptionRepository: Repository<Subscription>,
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
-    @InjectRepository(Publication)
-    private readonly publicationRepository: Repository<Publication>,
+    @InjectRepository(PublicationType)
+    private readonly publicationTypeRepository: Repository<PublicationType>,
   ) {}
 
   async create(createDto: CreateSubscriptionDto): Promise<SubscriptionWithRelations> {
-    const { clientId, publicationId, ...subscriptionData } = createDto;
+    const { clientId, publicationTypeId, ...subscriptionData } = createDto;
 
-    const [client, publication] = await Promise.all([
+    const [client, publicationType] = await Promise.all([
       this.clientRepository.findOne({ where: { id: clientId } }),
-      this.publicationRepository.findOne({ where: { id: publicationId } }),
+      this.publicationTypeRepository.findOne({ where: { id: publicationTypeId } }),
     ]);
 
     if (!client) {
       throw new NotFoundException(`Клиент с ID ${clientId} не найден`);
     }
 
-    if (!publication) {
-      throw new NotFoundException(`Публикация с ID ${publicationId} не найдена`);
+    if (!publicationType) {
+      throw new NotFoundException(`Тип публикации с ID ${publicationTypeId} не найден`);
     }
 
     const existingSubscription = await this.subscriptionRepository.findOne({
       where: {
         client: { id: clientId },
-        publication: { id: publicationId },
+        publicationType: { id: publicationTypeId },
       },
     });
 
     if (existingSubscription) {
-      throw new ConflictException('Подписка для данного клиента на это издание уже существует');
+      throw new ConflictException('Подписка для данного клиента на этот тип публикации уже существует');
     }
 
     try {
       const subscription = this.subscriptionRepository.create({
         ...subscriptionData,
-        client: { id: clientId },
-        publication: { id: publicationId },
+        client: { id: clientId } as Client,
+        publicationType: { id: publicationTypeId } as PublicationType,
       });
 
       const savedSubscription = await this.subscriptionRepository.save(subscription);
-      return this.findOne(savedSubscription.id);
+
+      return {
+        ...savedSubscription,
+        client,
+        publicationType,
+      };
     } catch (error) {
-      throw new InternalServerErrorException('Не удалось создать подписку');
+      throw new InternalServerErrorException('Ошибка при создании подписки');
     }
   }
 
   async findAll(): Promise<SubscriptionWithRelations[]> {
-    try {
-      return await this.subscriptionRepository.find({
-        relations: ['client', 'publication']
-      }) as SubscriptionWithRelations[];
-    } catch (error) {
-      throw new InternalServerErrorException('Не удалось загрузить список подписок');
-    }
+    return (await this.subscriptionRepository.find({
+      relations: ['client', 'publicationType'],
+    })) as unknown as SubscriptionWithRelations[];
   }
 
   async findOne(id: number): Promise<SubscriptionWithRelations> {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id },
-      relations: ['client', 'publication']
+      relations: ['client', 'publicationType'],
     });
 
     if (!subscription) {
       throw new NotFoundException(`Подписка с ID ${id} не найдена`);
     }
 
-    return subscription as SubscriptionWithRelations;
+    return subscription as unknown as SubscriptionWithRelations;
   }
 
   async update(id: number, updateDto: UpdateSubscriptionDto): Promise<SubscriptionWithRelations> {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id },
-      relations: ['client', 'publication']
+      relations: ['client', 'publicationType']
     });
 
     if (!subscription) {
@@ -105,26 +106,36 @@ export class SubscriptionsService {
       subscription.client = { id: updateDto.clientId } as Client;
     }
 
-    if (updateDto.publicationId) {
-      const publication = await this.publicationRepository.findOne({ where: { id: updateDto.publicationId } });
-      if (!publication) {
-        throw new NotFoundException(`Публикация с ID ${updateDto.publicationId} не найдена`);
+    if (updateDto.publicationTypeId) {
+      const publicationType = await this.publicationTypeRepository.findOne({ 
+        where: { id: updateDto.publicationTypeId } 
+      });
+      if (!publicationType) {
+        throw new NotFoundException(`Тип публикации с ID ${updateDto.publicationTypeId} не найден`);
       }
-      subscription.publication = { id: updateDto.publicationId } as Publication;
+      subscription.publicationType = { id: updateDto.publicationTypeId } as PublicationType;
+    }
+
+    if (updateDto.endDate) {
+      subscription.endDate = updateDto.endDate;
     }
 
     try {
-      // Remove ID fields from updateDto to prevent them from being updated
-      const { clientId, publicationId, ...updateData } = updateDto;
-      Object.assign(subscription, updateData);
+      const updatedSubscription = await this.subscriptionRepository.save(subscription);
       
-      const updated = await this.subscriptionRepository.save(subscription);
-      return this.findOne(updated.id);
+      // Получаем актуальные данные связанных сущностей
+      const [client, publicationType] = await Promise.all([
+        this.clientRepository.findOne({ where: { id: updatedSubscription.client.id } }),
+        this.publicationTypeRepository.findOne({ where: { id: updatedSubscription.publicationType.id } }),
+      ]);
+
+      return {
+        ...updatedSubscription,
+        client: client!,
+        publicationType: publicationType!,
+      };
     } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException('Подписка для данного клиента на это издание уже существует');
-      }
-      throw new InternalServerErrorException('Не удалось обновить подписку');
+      throw new InternalServerErrorException('Ошибка при обновлении подписки');
     }
   }
 
