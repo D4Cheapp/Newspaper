@@ -35,15 +35,7 @@ export class PublicationsService {
   ) {}
 
   async create(createDto: CreatePublicationDto): Promise<Publication> {
-    const {
-      typeId,
-      statusId,
-      printingHouseId,
-      authorIds = [],
-      title,
-      description,
-      price,
-    } = createDto;
+    const { typeId, statusId, printingHouseId, authorIds, title, description, price } = createDto;
 
     const [typeExists, statusExists, printingHouseExists] = await Promise.all([
       this.typeRepository.existsBy({ id: typeId }),
@@ -106,7 +98,7 @@ export class PublicationsService {
   async findAll(): Promise<Publication[]> {
     try {
       return await this.publicationRepository.find({
-        relations: ['publicationType', 'publicationStatus', 'printingHouse'],
+        relations: ['publicationType', 'publicationStatus', 'printingHouse', 'publicationAuthors'],
       });
     } catch (error) {
       throw new InternalServerErrorException('Не удалось загрузить список публикаций');
@@ -116,7 +108,7 @@ export class PublicationsService {
   async findOne(id: number): Promise<Publication> {
     const publication = await this.publicationRepository.findOne({
       where: { id },
-      relations: ['publicationType', 'publicationStatus', 'printingHouse'],
+      relations: ['publicationType', 'publicationStatus', 'printingHouse', 'publicationAuthors'],
     });
 
     if (!publication) {
@@ -207,7 +199,7 @@ export class PublicationsService {
       throw new NotFoundException(`Публикация с ID ${id} не найдена`);
     }
 
-    await this.publicationAuthorRepository.delete({ publicationId: id } as any);
+    await this.publicationAuthorRepository.delete({ publication: { id } } as any);
 
     const result = await this.publicationRepository.delete(id);
     if (result.affected === 0) {

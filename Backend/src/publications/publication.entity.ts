@@ -4,11 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { PrintingHouse } from '../printing-houses/printing-house.entity';
+import { PublicationAuthor } from './publication-author.entity';
 import { PublicationStatus } from './publication-status.entity';
 import { PublicationType } from './publication-type.entity';
 
@@ -40,6 +42,11 @@ export class Publication {
   @ManyToOne(() => PublicationStatus, (item) => item.id, { eager: false, nullable: false })
   @JoinColumn({ name: 'publication_status_id' })
   publicationStatus: PublicationStatus;
+
+  @OneToMany(() => PublicationAuthor, (publicationAuthor) => publicationAuthor.publication, {
+    cascade: true,
+  })
+  publicationAuthors: PublicationAuthor[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

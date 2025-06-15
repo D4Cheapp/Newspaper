@@ -1,12 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsDateString, IsOptional, IsArray, IsInt } from 'class-validator';
+
+import { IsArray, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePublicationDto {
   @ApiProperty({ example: 'Газета "Экономика сегодня"', description: 'Название издания' })
   @IsString()
   title: string;
 
-  @ApiProperty({ example: 'Ежедневная газета о последних новостях экономики', description: 'Краткое описание издания' })
+  @ApiProperty({
+    example: 'Ежедневная газета о последних новостях экономики',
+    description: 'Краткое описание издания',
+  })
   @IsString()
   description: string;
 
@@ -26,22 +30,11 @@ export class CreatePublicationDto {
   @IsInt()
   printingHouseId: number;
 
-  @ApiProperty({ 
-    example: ['2024-01-01', '2024-01-08', '2024-01-15'], 
-    description: 'Даты выхода издания',
-    type: [String],
-    required: false 
-  })
-  @IsArray()
-  @IsDateString({}, { each: true })
-  @IsOptional()
-  issueDates?: string[];
-
-  @ApiProperty({ 
-    example: [1, 2, 3], 
+  @ApiProperty({
+    example: [1, 2, 3],
     description: 'ID авторов издания',
     type: [Number],
-    required: false 
+    required: false,
   })
   @IsArray()
   @IsInt({ each: true })
