@@ -5,8 +5,12 @@ import { Button, Input } from '@heroui/react';
 import { Roles } from 'constants/roles';
 import { Routes } from 'constants/routes';
 
+import { useRouter } from 'next/navigation';
+
 export const PublicationsFilter = () => {
   const { role } = useAuthContext();
+
+  const router = useRouter();
 
   const canManage = role === Roles.editor || role === Roles.chiefEditor;
 
@@ -19,7 +23,10 @@ export const PublicationsFilter = () => {
         className={canManage ? 'col-span-3' : 'col-span-4'}
       />
       {canManage && (
-        <Button color="primary" variant="solid" onPress={() => {}} href={Routes.createPublication}>
+        <Button
+          color="primary"
+          variant="solid"
+          onPress={() => router.push(Routes.createPublication)}>
           Создать публикацию
         </Button>
       )}

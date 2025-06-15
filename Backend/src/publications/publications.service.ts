@@ -189,6 +189,7 @@ export class PublicationsService {
       if (updateDto.title) publication.name = updateDto.title;
       if (updateDto.description) publication.description = updateDto.description;
       if (updateDto.price) publication.price = updateDto.price.toString();
+      if (updateDto.circulation) publication.circulation = updateDto.circulation;
 
       publication.updatedAt = new Date();
 

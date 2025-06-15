@@ -30,6 +30,10 @@ export class CreatePublicationDto {
   @IsInt()
   printingHouseId: number;
 
+  @ApiProperty({ example: 1000, description: 'Количество экземпляров издания' })
+  @IsInt()
+  circulation: number;
+
   @ApiProperty({
     example: [1, 2, 3],
     description: 'ID авторов издания',

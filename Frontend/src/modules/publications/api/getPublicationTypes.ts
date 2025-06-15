@@ -1,9 +1,10 @@
-import { request } from '@/utils/request';
-import { ApiMethods } from '@/utils/request';
 import { PublicationTypes } from 'constants/entity-types';
 
+import { request } from '@/utils/request';
+import { ApiMethods } from '@/utils/request';
+
 export const getPublicationTypes = () =>
-  request<PublicationTypes[]>({ 
-    method: ApiMethods.GET, 
+  request<{ id: string; name: PublicationTypes }[]>({
+    method: ApiMethods.GET,
     url: '/publication-types',
   });

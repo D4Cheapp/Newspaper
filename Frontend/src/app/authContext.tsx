@@ -2,7 +2,7 @@
 
 import { Roles } from 'constants/roles';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthContextType = {
   role: Roles | null;
@@ -15,7 +15,12 @@ type Props = {
 };
 
 export const AuthProvider = ({ children }: Props) => {
-  const role = localStorage.getItem('role') as Roles;
+  const [role, setRole] = useState<Roles | null>(null);
+
+  useEffect(() => {
+    setRole(localStorage.getItem('role') as Roles);
+  }, []);
+
   return <AuthContext.Provider value={{ role }}>{children}</AuthContext.Provider>;
 };
 
