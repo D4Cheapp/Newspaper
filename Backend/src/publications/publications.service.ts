@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,7 +10,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
 import { Author } from '../authors/author.entity';
+import { DeliveryStatus } from '../deliveries/delivery-status.entity';
+import { Delivery } from '../deliveries/delivery.entity';
 import { PrintingHouse } from '../printing-houses/printing-house.entity';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CreatePublicationDto } from './dto/create-publication.dto';
 import { UpdatePublicationDto } from './dto/update-publication.dto';
 import { PublicationAuthor } from './publication-author.entity';
@@ -19,6 +23,8 @@ import { Publication } from './publication.entity';
 
 @Injectable()
 export class PublicationsService {
+  private readonly logger = new Logger(PublicationsService.name);
+
   constructor(
     @InjectRepository(Publication)
     private readonly publicationRepository: Repository<Publication>,
@@ -31,7 +37,12 @@ export class PublicationsService {
     @InjectRepository(Author)
     private readonly authorRepository: Repository<Author>,
     @InjectRepository(PublicationAuthor)
-    private readonly publicationAuthorRepository: Repository<PublicationAuthor>
+    private readonly publicationAuthorRepository: Repository<PublicationAuthor>,
+    @InjectRepository(Delivery)
+    private readonly deliveryRepository: Repository<Delivery>,
+    @InjectRepository(DeliveryStatus)
+    private readonly deliveryStatusRepository: Repository<DeliveryStatus>,
+    private readonly subscriptionsService: SubscriptionsService
   ) {}
 
   async create(createDto: CreatePublicationDto): Promise<Publication> {
@@ -77,16 +88,14 @@ export class PublicationsService {
       const savedPublication = await this.publicationRepository.save(publication);
 
       if (authorIds && authorIds.length > 0) {
-        const publicationAuthors = authorIds.map((authorId) => {
-          const pa = new PublicationAuthor();
-          pa.publication = { id: savedPublication.id } as Publication;
-          pa.author = { id: authorId } as Author;
-          return pa;
-        });
-        await this.publicationAuthorRepository.save(publicationAuthors);
+        await this.createPublicationAuthors(savedPublication.id, authorIds);
       }
 
-      return this.findOne(savedPublication.id);
+      const fullPublication = await this.findOne(savedPublication.id);
+
+      await this.createDeliveryRequestsForSubscribers(fullPublication);
+
+      return fullPublication;
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('Публикация с таким названием уже существует');
@@ -190,6 +199,60 @@ export class PublicationsService {
         throw new ConflictException('Публикация с таким названием уже существует');
       }
       throw new InternalServerErrorException('Не удалось обновить публикацию');
+    }
+  }
+
+  private async createPublicationAuthors(
+    publicationId: number,
+    authorIds: number[]
+  ): Promise<void> {
+    try {
+      const publicationAuthors = authorIds.map((authorId) => {
+        const pa = new PublicationAuthor();
+        pa.publication = { id: publicationId } as Publication;
+        pa.author = { id: authorId } as Author;
+        return pa;
+      });
+
+      await this.publicationAuthorRepository.save(publicationAuthors);
+    } catch (error) {
+      this.logger.error(
+        `Ошибка при создании связей с авторами для публикации ${publicationId}: ${error.message}`,
+        error.stack
+      );
+      throw new InternalServerErrorException('Не удалось создать связи с авторами');
+    }
+  }
+
+  private async createDeliveryRequestsForSubscribers(publication: Publication): Promise<void> {
+    try {
+      const pendingStatus = await this.deliveryStatusRepository.findOne({ where: { id: 1 } });
+      if (!pendingStatus) {
+        throw new Error('Не найден статус доставки по умолчанию');
+      }
+
+      const subscriptions = await this.subscriptionsService.findActiveByPublicationType(
+        publication.publicationType.id
+      );
+
+      const deliveryPromises = subscriptions.map(async (subscription) => {
+        const delivery = this.deliveryRepository.create({
+          client: subscription.client,
+          publication: publication,
+          status: pendingStatus,
+          address: subscription.client.address,
+          deliveryDate: new Date().toISOString().split('T')[0],
+        });
+
+        return this.deliveryRepository.save(delivery);
+      });
+
+      await Promise.all(deliveryPromises);
+      this.logger.log(
+        `Создано ${subscriptions.length} заявок на доставку для публикации ${publication.id}`
+      );
+    } catch (error) {
+      this.logger.error(`Ошибка при создании заявок на доставку: ${error.message}`, error.stack);
     }
   }
 

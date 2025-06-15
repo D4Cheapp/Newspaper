@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+import { IsDateString, IsInt, IsNotEmpty } from 'class-validator';
 
 export class CreateSubscriptionDto {
   @ApiProperty({ description: 'ID клиента', example: 1 })
@@ -16,9 +17,4 @@ export class CreateSubscriptionDto {
   @IsDateString()
   @IsNotEmpty()
   endDate: string;
-
-  @ApiProperty({ description: 'Комментарий к подписке', required: false })
-  @IsString()
-  @IsOptional()
-  comment?: string;
 }

@@ -1,11 +1,18 @@
-import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
-import { Subscription } from './subscription.entity';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
+
 import { Client } from '../clients/client.entity';
 import { PublicationType } from '../publications/publication-type.entity';
+import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
+import { Subscription } from './subscription.entity';
 
 type SubscriptionWithRelations = Subscription & {
   client: Client;
@@ -20,7 +27,7 @@ export class SubscriptionsService {
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
     @InjectRepository(PublicationType)
-    private readonly publicationTypeRepository: Repository<PublicationType>,
+    private readonly publicationTypeRepository: Repository<PublicationType>
   ) {}
 
   async create(createDto: CreateSubscriptionDto): Promise<SubscriptionWithRelations> {
@@ -47,7 +54,9 @@ export class SubscriptionsService {
     });
 
     if (existingSubscription) {
-      throw new ConflictException('Подписка для данного клиента на этот тип публикации уже существует');
+      throw new ConflictException(
+        'Подписка для данного клиента на этот тип публикации уже существует'
+      );
     }
 
     try {
@@ -91,7 +100,7 @@ export class SubscriptionsService {
   async update(id: number, updateDto: UpdateSubscriptionDto): Promise<SubscriptionWithRelations> {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id },
-      relations: ['client', 'publicationType']
+      relations: ['client', 'publicationType'],
     });
 
     if (!subscription) {
@@ -107,8 +116,8 @@ export class SubscriptionsService {
     }
 
     if (updateDto.publicationTypeId) {
-      const publicationType = await this.publicationTypeRepository.findOne({ 
-        where: { id: updateDto.publicationTypeId } 
+      const publicationType = await this.publicationTypeRepository.findOne({
+        where: { id: updateDto.publicationTypeId },
       });
       if (!publicationType) {
         throw new NotFoundException(`Тип публикации с ID ${updateDto.publicationTypeId} не найден`);
@@ -122,11 +131,13 @@ export class SubscriptionsService {
 
     try {
       const updatedSubscription = await this.subscriptionRepository.save(subscription);
-      
+
       // Получаем актуальные данные связанных сущностей
       const [client, publicationType] = await Promise.all([
         this.clientRepository.findOne({ where: { id: updatedSubscription.client.id } }),
-        this.publicationTypeRepository.findOne({ where: { id: updatedSubscription.publicationType.id } }),
+        this.publicationTypeRepository.findOne({
+          where: { id: updatedSubscription.publicationType.id },
+        }),
       ]);
 
       return {
@@ -137,6 +148,36 @@ export class SubscriptionsService {
     } catch (error) {
       throw new InternalServerErrorException('Ошибка при обновлении подписки');
     }
+  }
+
+  async findActiveByPublicationType(publicationTypeId: number): Promise<
+    Array<{
+      id: number;
+      client: Client;
+      endDate: string;
+    }>
+  > {
+    const currentDate = new Date().toISOString().split('T')[0];
+
+    return this.subscriptionRepository
+      .createQueryBuilder('subscription')
+      .leftJoinAndSelect('subscription.client', 'client')
+      .where('subscription.publicationType = :publicationTypeId', { publicationTypeId })
+      .andWhere('subscription.endDate >= :currentDate', { currentDate })
+      .select([
+        'subscription.id',
+        'subscription.endDate',
+        'client.id',
+        'client.name',
+        'client.email',
+        'client.phone',
+        'client.address',
+      ])
+      .getMany() as unknown as Array<{
+      id: number;
+      client: Client;
+      endDate: string;
+    }>;
   }
 
   async remove(id: number): Promise<void> {

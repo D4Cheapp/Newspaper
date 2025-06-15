@@ -43,10 +43,10 @@ export class Publication {
   @JoinColumn({ name: 'publication_status_id' })
   publicationStatus: PublicationStatus;
 
-  @OneToMany(() => PublicationAuthor, (publicationAuthor) => publicationAuthor.publication, {
+  @OneToMany('PublicationAuthor', 'publication', {
     cascade: true,
   })
-  publicationAuthors: PublicationAuthor[];
+  publicationAuthors: Promise<PublicationAuthor[]>;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
