@@ -12,7 +12,7 @@ export const HomePage = () => {
 
   const handleSetRole = (role: Roles) => {
     localStorage.setItem('role', role);
-    router.push(Routes.newspapers);
+    router.push(Routes.publications);
   };
 
   return (

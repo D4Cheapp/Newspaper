@@ -1,4 +1,4 @@
--- Клиенты
+-- Таблица клиентов
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
     address VARCHAR(255),
@@ -21,7 +21,7 @@ CREATE TABLE authors (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Типографии
+-- Таблица типографий
 CREATE TABLE printing_houses (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -31,19 +31,19 @@ CREATE TABLE printing_houses (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Типы изданий
+-- Таблица типов изданий
 CREATE TABLE publication_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
 
--- Статусы изданий
+-- Таблица статусов изданий
 CREATE TABLE publication_statuses (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
 
--- Издания
+-- Таблица изданий
 CREATE TABLE publications (
     id SERIAL PRIMARY KEY,
     publication_type_id INT NOT NULL,
@@ -60,19 +60,19 @@ CREATE TABLE publications (
     FOREIGN KEY (publication_status_id) REFERENCES publication_statuses(id)
 );
 
--- Статусы заявок
+-- Таблица статусов заявок
 CREATE TABLE request_statuses (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
 
--- Типы услуг
+-- Таблица типов услуг
 CREATE TABLE service_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
 
--- Заявки
+-- Таблица заявок
 CREATE TABLE requests (
     id SERIAL PRIMARY KEY,
     client_id INT NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE requests (
     FOREIGN KEY (service_type_id) REFERENCES service_types(id)
 );
 
--- Авторы статей (связь многие-ко-многим между авторами и изданиями)
+-- Таблица связи авторов и изданий (связь многие-ко-многим)
 CREATE TABLE publication_authors (
     id SERIAL PRIMARY KEY,
     author_id INT NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE publication_authors (
     UNIQUE (author_id, publication_id)
 );
 
--- Подписки
+-- Таблица подписок
 CREATE TABLE subscriptions (
     id SERIAL PRIMARY KEY,
     client_id INT NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE subscriptions (
     UNIQUE (client_id, publication_id)
 );
 
--- Статусы доставки
+-- Таблица статусов доставки
 CREATE TABLE delivery_statuses (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE delivery_statuses (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Доставки
+-- Таблица доставок
 CREATE TABLE deliveries (
     id SERIAL PRIMARY KEY,
     client_id INT NOT NULL,
@@ -130,3 +130,71 @@ CREATE TABLE deliveries (
     FOREIGN KEY (publication_id) REFERENCES publications(id),
     FOREIGN KEY (delivery_status_id) REFERENCES delivery_statuses(id)
 );
+
+-- Вставка начальных данных для статусов доставки
+INSERT INTO delivery_statuses (name) VALUES
+    ('В обработке'),
+    ('В доставке'),
+    ('Доставлено'),
+    ('Отменено');
+
+
+-- Вставка начальных данных для статусов изданий
+INSERT INTO publication_statuses (name) VALUES
+    ('В работе'),
+    ('Печатается'),
+    ('Опубликовано'),
+    ('Архив');
+
+-- Вставка начальных данных для статусов заявок
+INSERT INTO request_statuses (name) VALUES
+    ('В обработке'),
+    ('Выполнен'),
+    ('Отменено');
+
+-- Вставка начальных данных для типов услуг
+INSERT INTO service_types (name) VALUES
+    ('Публикация рекламного объявления'),
+    ('Публикация рекламной статьи'),
+    ('Размещение вакансий'),
+    ('Размещение поздравлений'),
+    ('Размещение некрологов'),
+    ('Архивная выписка'),
+    ('Печать персонализированного выпуска'),
+    ('Заказ тематического набора статей');
+
+-- Вставка начальных данных для типов статей
+INSERT INTO publication_types (name) VALUES
+    -- Новостные
+    ('Главная новость'),
+    ('Срочная новость'),
+    ('Расследование'),
+    ('Репортаж'),
+    ('Интервью'),
+    
+    -- Тематические
+    ('Политическая статья'),
+    ('Экономический обзор'),
+    ('Культурное обозрение'),
+    ('Спортивный отчёт'),
+    ('Научно-популярная статья'),
+    
+    -- Развлекательные
+    ('Юмористическая заметка'),
+    ('Анекдот'),
+    ('Кроссворд/Головоломка'),
+    ('Гороскоп'),
+    ('Рецепты'),
+    
+    -- Информационные
+    ('Погода'),
+    ('Курсы валют'),
+    ('Телепрограмма'),
+    ('Афиша мероприятий'),
+    ('Объявления'),
+    
+    -- Специальные
+    ('Редакторская колонка'),
+    ('Письма читателей'),
+    ('Аналитика'),
+    ('Фоторепортаж');

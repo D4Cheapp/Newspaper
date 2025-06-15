@@ -2,10 +2,11 @@
 
 import { Navbar as HeroNavbar, NavbarBrand, NavbarContent } from '@heroui/react';
 import { Roles } from 'constants/roles';
-import { chiefEditorRoutes, editorRoutes, managerRoutes } from 'constants/routes';
+import { chiefEditorRoutes, managerRoutes, Routes } from 'constants/routes';
 
 import { useEffect, useState } from 'react';
 
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { NavbarDropdown } from './NavbarDropdown';
@@ -36,14 +37,11 @@ export const Navbar = () => {
   return (
     <HeroNavbar isBordered>
       <NavbarBrand className="cursor-pointer">
-        <img src="/icons/newspaper.svg" alt="" />
+        <Link href={Routes.publications}>
+          <img src="/icons/newspaper.svg" alt="" />
+        </Link>
       </NavbarBrand>
       <NavbarContent justify="center" className="flex gap-[5vw] max-sm:gap-0">
-        <NavbarDropdown
-          title="Меню редактора"
-          haveAccess={haveEditorAccess}
-          routes={editorRoutes}
-        />
         <NavbarDropdown
           title="Меню менеджера"
           haveAccess={haveManagerAccess}

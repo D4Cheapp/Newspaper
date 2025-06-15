@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'MedKids',
-  description: 'Медицинская система управления детской поликлиникой',
+  title: 'Городская газета',
+  description: 'Городская газета',
 };
 
 export default function RootLayout({

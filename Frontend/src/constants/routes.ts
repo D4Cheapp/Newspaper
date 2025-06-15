@@ -1,25 +1,19 @@
 export enum Routes {
   home = '/',
-  newspapers = '/newspapers',
+  publications = '/publications',
+  createPublication = '/publications/create',
 }
-
-export const editorRoutes = [
-  {
-    label: 'Новости',
-    href: '/newspapers',
-  },
-];
 
 export const managerRoutes = [
   {
-    label: 'Новости',
-    href: '/newspapers',
+    label: 'Публикации',
+    href: Routes.publications,
   },
 ];
 
 export const chiefEditorRoutes = [
   {
-    label: 'Новости',
-    href: '/newspapers',
+    label: 'Публикации',
+    href: Routes.publications,
   },
 ];
