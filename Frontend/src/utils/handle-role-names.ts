@@ -3,7 +3,7 @@ export const handleRoleNames = (role: string) => {
     case 'Manager':
       return 'Менеджер';
     case 'Editor':
-      return 'Редактор';
+      return 'Автор';
     case 'ChiefEditor':
       return 'Главный редактор';
     default:

@@ -1,6 +1,8 @@
 import { Subscriptions } from '@/modules/types';
 
-export type UpsertSubscriptionDto = Omit<Subscriptions, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpsertSubscriptionDto = Omit<Subscriptions, 'id' | 'createdAt' | 'updatedAt' | 'publication'> & {
+  publicationTypeId: string;
+};
 
 export type GetSubscriptionsParams = {
   page?: number;
@@ -8,5 +10,5 @@ export type GetSubscriptionsParams = {
   search?: string;
   status?: string;
   clientId?: string;
-  publicationId?: string;
+  publicationTypeId?: string;
 };

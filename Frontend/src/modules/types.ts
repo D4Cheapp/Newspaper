@@ -71,7 +71,8 @@ export type Requests = {
 export type Subscriptions = {
   id: string;
   client: Client;
-  publication: Publication;
+  publicationType?: EntityType<PublicationTypes>;
+  publication?: Publication;
   endDate: string;
   createdAt: string;
   updatedAt: string;
