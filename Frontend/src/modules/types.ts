@@ -61,7 +61,7 @@ export type PrintingHouses = {
 export type Requests = {
   id: string;
   client: Client;
-  requestStatus: EntityType<RequestStatus>;
+  status: EntityType<RequestStatus>;
   serviceType: EntityType<ServiceTypes>;
   description: string;
   createdAt: string;
