@@ -2,7 +2,12 @@
 
 import { getAuthors } from '@/modules/authors/api/getAuthors';
 import { getPrintingHouses } from '@/modules/printing-houses/api/getPrintingHouses';
-import { createPublication, getPublication, updatePublication } from '@/modules/publications/api';
+import {
+  createPublication,
+  deletePublication,
+  getPublication,
+  updatePublication,
+} from '@/modules/publications/api';
 import { getPublicationStatuses } from '@/modules/publications/api/getPublicationStatuses';
 import { getPublicationTypes } from '@/modules/publications/api/getPublicationTypes';
 import { UpsertPublicationDto } from '@/modules/publications/types';
@@ -205,6 +210,23 @@ export const PublicationForm = (props: PublicationFormProps) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!publicationId) return;
+
+    if (
+      window.confirm('Вы уверены, что хотите удалить эту публикацию? Это действие нельзя отменить.')
+    ) {
+      try {
+        await deletePublication(publicationId);
+        router.push('/publications');
+        router.refresh();
+      } catch (error) {
+        console.error('Error deleting publication:', error);
+        setError('Не удалось удалить публикацию. Пожалуйста, попробуйте еще раз.');
+      }
+    }
+  };
+
   if (isLoading || isLoadingData) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -363,17 +385,30 @@ export const PublicationForm = (props: PublicationFormProps) => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-2">
-          <Button
-            type="button"
-            variant="bordered"
-            onPress={() => router.push('/publications')}
-            disabled={isSubmitting}>
-            Отмена
-          </Button>
-          <Button type="submit" disabled={isSubmitting} color="primary">
-            {isSubmitting ? 'Сохранение...' : 'Сохранить'}
-          </Button>
+        <div className="flex justify-between items-center pt-2">
+          <div>
+            {publicationId && (
+              <Button
+                type="button"
+                color="danger"
+                onPress={handleDelete}
+                disabled={isSubmitting}
+                className="mr-2">
+                Удалить
+              </Button>
+            )}
+          </div>
+          <div className="flex space-x-3">
+            <Button
+              type="button"
+              onPress={() => router.push('/publications')}
+              disabled={isSubmitting}>
+              Отмена
+            </Button>
+            <Button type="submit" disabled={isSubmitting} color="primary">
+              {isSubmitting ? 'Сохранение...' : 'Сохранить'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

@@ -31,19 +31,11 @@ export const managerRoutes = [
 
 export const chiefEditorRoutes = [
   {
-    label: 'Публикации',
-    href: Routes.publications,
-  },
-  {
     label: 'Авторы',
     href: Routes.authors,
   },
   {
     label: 'Типографии',
     href: Routes.printingHouses,
-  },
-  {
-    label: 'Доставки',
-    href: Routes.deliveries,
   },
 ];

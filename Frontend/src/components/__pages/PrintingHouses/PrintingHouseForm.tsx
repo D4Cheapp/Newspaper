@@ -1,7 +1,8 @@
 'use client';
 
-import { PrintingHouses } from '@/modules/types';
+import { deletePrintingHouse } from '@/modules/printing-houses/api/deletePrintingHouse';
 import { UpsertPrintingHouseDto } from '@/modules/printing-houses/types';
+import { PrintingHouses } from '@/modules/types';
 import {
   Button,
   Input,
@@ -11,6 +12,7 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@heroui/react';
+
 import { useEffect, useState } from 'react';
 
 interface PrintingHouseFormProps {
@@ -60,12 +62,26 @@ export const PrintingHouseForm = ({
     }));
   };
 
+  const handleDelete = async () => {
+    if (!printingHouse?.id) return;
+
+    if (window.confirm('Вы уверены, что хотите удалить эту типографию?')) {
+      try {
+        await deletePrintingHouse(printingHouse.id);
+        onClose();
+      } catch (error) {
+        console.error('Error deleting printing house:', error);
+        setError('Не удалось удалить типографию. Пожалуйста, попробуйте еще раз.');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    
+    setError('');
+
     if (!formData.name.trim()) {
-      setError('Название типографии обязательно для заполнения');
+      setError('Название обязательно для заполнения');
       return;
     }
 
@@ -81,15 +97,13 @@ export const PrintingHouseForm = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalContent>
-        {(onClose) => (
+        {onClose => (
           <form onSubmit={handleSubmit}>
             <ModalHeader className="flex flex-col gap-1">
               {printingHouse ? 'Редактировать типографию' : 'Добавить типографию'}
             </ModalHeader>
             <ModalBody className="space-y-4">
-              {error && (
-                <div className="text-red-500 text-sm">{error}</div>
-              )}
+              {error && <div className="text-red-500 text-sm">{error}</div>}
               <Input
                 label="Название"
                 name="name"
@@ -111,13 +125,22 @@ export const PrintingHouseForm = ({
                 onChange={handleChange}
               />
             </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose}>
-                Отмена
-              </Button>
-              <Button color="primary" type="submit" isLoading={isSubmitting}>
-                {printingHouse ? 'Сохранить' : 'Добавить'}
-              </Button>
+            <ModalFooter className="justify-between">
+              <div>
+                {printingHouse?.id && (
+                  <Button color="danger" onPress={handleDelete} isDisabled={isSubmitting}>
+                    Удалить
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button onPress={onClose} isDisabled={isSubmitting}>
+                  Отмена
+                </Button>
+                <Button color="primary" type="submit" isLoading={isSubmitting}>
+                  {printingHouse ? 'Сохранить' : 'Добавить'}
+                </Button>
+              </div>
             </ModalFooter>
           </form>
         )}

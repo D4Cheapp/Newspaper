@@ -1,6 +1,7 @@
 'use client';
 
 import { getClients } from '@/modules/clients/api/getClients';
+import { deleteDelivery } from '@/modules/deliveries/api/deleteDelivery';
 import { UpsertDeliveryDto } from '@/modules/deliveries/types';
 import { getPublications } from '@/modules/publications/api/getPublications';
 import { Client, Deliveries, Publication } from '@/modules/types';
@@ -201,6 +202,20 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
     }
   };
 
+  const handleDelete = async () => {
+    if (!delivery?.id) return;
+
+    if (window.confirm('Вы уверены, что хотите удалить эту доставку?')) {
+      try {
+        await deleteDelivery(Number(delivery.id));
+        onClose();
+      } catch (error) {
+        console.error('Error deleting delivery:', error);
+        setError('Не удалось удалить доставку. Пожалуйста, попробуйте еще раз.');
+      }
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <ModalContent>
@@ -264,13 +279,29 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
               disabled={isLoading}
             />
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="flat" onPress={onClose} disabled={isSubmitting || isLoading}>
-                Отмена
-              </Button>
-              <Button color="primary" type="submit" isLoading={isSubmitting} isDisabled={isLoading}>
-                {delivery ? 'Сохранить' : 'Добавить'}
-              </Button>
+            <div className="flex justify-between pt-4">
+              <div>
+                {delivery?.id && (
+                  <Button
+                    color="danger"
+                    onPress={handleDelete}
+                    isDisabled={isSubmitting || isLoading}>
+                    Удалить
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button onPress={onClose} isDisabled={isSubmitting || isLoading}>
+                  Отмена
+                </Button>
+                <Button
+                  color="primary"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isDisabled={isLoading}>
+                  {delivery ? 'Сохранить' : 'Добавить'}
+                </Button>
+              </div>
             </div>
           </form>
         </ModalBody>

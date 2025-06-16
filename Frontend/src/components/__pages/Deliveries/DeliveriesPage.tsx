@@ -39,7 +39,6 @@ export const DeliveriesPage = () => {
       throw new Error('Invalid delivery data received from API');
     }
 
-    // Map the delivery status name to the corresponding enum value
     let statusName: DeliveryStatus;
     const statusLower = String(delivery.deliveryStatus.name).toLowerCase();
 
@@ -146,7 +145,6 @@ export const DeliveriesPage = () => {
   const handleSubmit = async (formData: UpsertDeliveryDto) => {
     setIsSubmitting(true);
     try {
-      // Convert string IDs to numbers and add required fields
       const deliveryData: CreateDeliveryDto = {
         ...formData,
         clientId: formData.clientId,
@@ -155,7 +153,6 @@ export const DeliveriesPage = () => {
       };
 
       if (editingDelivery) {
-        // Convert ID to number for the API call
         await updateDelivery(parseInt(editingDelivery.id, 10), deliveryData);
       } else {
         await createDelivery(deliveryData);

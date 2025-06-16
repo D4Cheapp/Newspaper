@@ -1,7 +1,8 @@
 'use client';
 
-import { DeliveryStatus } from 'constants/statuses';
 import { Input, Select, SelectItem } from '@heroui/react';
+import { DeliveryStatus } from 'constants/statuses';
+
 import { useEffect, useState } from 'react';
 
 interface StatusOption {
@@ -24,16 +25,14 @@ export const DeliveriesFilter = ({
   onStatusChange,
 }: DeliveriesFilterProps) => {
   const [statusOptions, setStatusOptions] = useState<StatusOption[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Convert DeliveryStatus enum to options array
     const options = Object.entries(DeliveryStatus).map(([key, value]) => ({
       key,
       label: value,
       value: key,
     }));
-    
+
     setStatusOptions(options);
   }, []);
 
@@ -45,26 +44,20 @@ export const DeliveriesFilter = ({
           placeholder="Поиск по клиенту или изданию..."
           value={search}
           variant="bordered"
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={e => onSearchChange(e.target.value)}
         />
       </div>
       <div>
         <Select
           label="Статус доставки"
           selectedKeys={statusId ? [statusId] : []}
-          onSelectionChange={(keys) => {
+          onSelectionChange={keys => {
             const selectedKey = Array.from(keys)[0] as string;
             onStatusChange(selectedKey);
           }}
           variant="bordered"
-          disabled={isLoading}
-          items={statusOptions}
-        >
-          {(status) => (
-            <SelectItem key={status.key}>
-              {status.label}
-            </SelectItem>
-          )}
+          items={statusOptions}>
+          {status => <SelectItem key={status.key}>{status.label}</SelectItem>}
         </Select>
       </div>
     </div>
